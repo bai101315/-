@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta HTTP-EQUIV="pragma" CONTENT="no-cache">
+    <meta HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate">
+    <meta HTTP-EQUIV="expires" CONTENT="0">
+    <title>数据统计</title>
+    <link rel="stylesheet" href="../../css/element.css">
+    <link rel="stylesheet" href="../../css/base.css">
+    <style>
+        .el-divider__text {
+            background: #eee;
+        }
+    </style>
+</head>
+<body>
+<div id="wrapper" v-cloak>
+
+
+    <el-col :span="12">
+        <el-card>
+            <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+            <div id="main" style="width: 100%;height:400px; margin: 0 auto"></div>
+        </el-card>
+    </el-col>
+    <el-col :span="12">
+        <el-card>
+            <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+            <div id="cus" style="width: 100%;height:400px; margin: 0 auto"></div>
+        </el-card>
+    </el-col>
+    <el-col :span="12">
+        <el-card>
+            <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+            <div id="con" style="width: 100%;height:400px; margin: 0 auto"></div>
+        </el-card>
+    </el-col>
+    <el-col :span="12">
+        <el-card>
+            <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+            <div id="cost" style="width: 100%;height:400px; margin: 0 auto"></div>
+        </el-card>
+    </el-col>
+
+
+    <el-row style="padding: 5px 0">
+        <el-col :span="24">
+            <el-card>
+                <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+                <div id="bar" style="width: 100%;height:400px; margin: 0 auto"></div>
+            </el-card>
+        </el-col>
+    </el-row>
+
+
+</div>
+
+<script src="../../js/echarts.min.js"></script>
+<script src="../../js/china.js"></script>
+<script src="../../js/jquery.min.js"></script>
+<script src="../../js/vue.min.js"></script>
+<script src="../../js/element.js"></script>
+
+
+<script>
+    const pieOption = {
+        title: {text: '服务人员统计'},
+        tooltip: {trigger: 'item'},
+        legend: {top: '0', left: 'right'},
+        series: [
+            {
+                name: '访问来源',
+                type: 'pie',
+                radius: ['40%', '70%'],
+                itemStyle: {
+                    borderRadius: 10,
+                    borderColor: '#fff',
+                    borderWidth: 2
+                },
+                data: []
+            }
+        ]
+    };
+    const cusOption = {
+        title: {text: '客户统计'},
+        tooltip: {trigger: 'item'},
+        legend: {top: '0', left: 'right'},
+        series: [
+            {
+                name: '访问来源',
+                type: 'pie',
+                radius: ['40%', '70%'],
+                itemStyle: {
+                    borderRadius: 10,
+                    borderColor: '#fff',
+                    borderWidth: 2
+                },
+                data: []
+            }
+        ]
+    };
+    const conOption = {
+        title: {text: '合同个数统计'},
+        tooltip: {trigger: 'item'},
+        legend: {top: '0', left: 'right'},
+        series: [
+            {
+                name: '访问来源',
+                type: 'pie',
+                radius: ['40%', '70%'],
+                itemStyle: {
+                    borderRadius: 10,
+                    borderColor: '#fff',
+                    borderWidth: 2
+                },
+                data: []
+            }
+        ]
+    };
+    const costOption = {
+        title: {text: '金额统计'},
+        tooltip: {trigger: 'axis'},
+        legend: {top: '0', left: 'right'},
+        series: [
+            {
+                name: '访问来源',
+                type: 'pie',
+                radius: ['40%', '70%'],
+                itemStyle: {
+                    borderRadius: 10,
+                    borderColor: '#fff',
+                    borderWidth: 2
+                },
+                data: []
+            }
+        ]
+    };
+
+    const barOption = {
+        title: {text: '数据统计'},
+        tooltip: {trigger: 'axis'},
+        legend: {data: ['邮件营销', '联盟广告', '视频广告', '直接访问', '搜索引擎']},
+        xAxis: {
+            type: 'category',
+            data: ['2024-01-18', '2024-01-19', '2024-01-20', '2024-01-21', '2024-01-22', '2024-01-23', '2024-01-24']
+        },
+        yAxis: {type: 'value'},
+        series: [
+            {
+                name: '服务人员',
+                type: 'bar',
+                data: [0, 1, 2, 0, 0, 0, 0]
+            },
+            {
+                name: '客户',
+                type: 'bar',
+                data: [0, 0, 1, 2, 0, 0,0]
+            },
+            {
+                name: '合同个数',
+                type: 'bar',
+                data: [1, 1, 1, 1, 1, 1, 1]
+            },
+            {
+                name: '金额统计',
+                type: 'bar',
+                data: [10, 20, 30, 40, 50, 60, 70]
+            },
+        ]
+    };
+
+    new Vue({
+        el: "#wrapper",
+        data: {
+            active: 0,
+            users: [],
+            roles: [],
+            permissions: [],
+            notices: [],
+            user: {},
+            tableData: [],
+            pageNum: 1,
+            pageSize: 10,
+            total: 0,
+            dialogFormVisible: false,
+            entity: {},
+            isCollapse: false
+        },
+        mounted() {
+            this.user = sessionStorage.getItem("user") ? JSON.parse(sessionStorage.getItem("user")) : {};
+            this.load();
+        },
+        methods: {
+            load() {
+                $.get("/api/notice/").then((res) => {
+                    this.notices = res.data;
+                })
+
+                // 基于准备好的dom，初始化echarts实例
+                let myChart = echarts.init(document.getElementById('main'));
+                $.ajax({
+                    url: "/api/serviceStaff",
+                    success(res) {
+                        let createtime = Array.from(new Set(res.data.map(v => v.createtime)))
+                        createtime.forEach(item => {
+                            let count = res.data.filter(v => v.createtime === item).length
+                            pieOption.series[0].data.push({name: item, value: count})
+                        })
+                        console.log(res,'res')
+                        // 使用刚指定的配置项和数据显示图表。
+                        myChart.setOption(pieOption);
+                    }
+                })
+                // 基于准备好的dom，初始化echarts实例
+                let cusChart = echarts.init(document.getElementById('cus'));
+                $.ajax({
+                    url: "/api/cusinfo",
+                    success(res) {
+                        let createtime = Array.from(new Set(res.data.map(v => v.createtime)))
+                        createtime.forEach(item => {
+                            let count = res.data.filter(v => v.createtime === item).length
+                            cusOption.series[0].data.push({name: item, value: count})
+                        })
+                        console.log(res,'res')
+                        // 使用刚指定的配置项和数据显示图表。
+                        cusChart.setOption(cusOption);
+                    }
+                })
+                let conChart = echarts.init(document.getElementById('con'));
+                $.ajax({
+                    url: "/api/contractinfo",
+                    success(res) {
+                        let createtime = Array.from(new Set(res.data.map(v => v.createtime)))
+                        createtime.forEach(item => {
+                            let count = res.data.filter(v => v.createtime === item).length
+                            conOption.series[0].data.push({name: item, value: count})
+                        })
+                        console.log(res,'res')
+                        // 使用刚指定的配置项和数据显示图表。
+                        conChart.setOption(conOption);
+                    }
+                })
+                let costChart = echarts.init(document.getElementById('cost'));
+                $.ajax({
+                    url: "/api/contractinfo",
+                    success(res) {
+                        let createtime = Array.from(new Set(res.data.map(v => v.createtime)))
+                        createtime.forEach(item => {
+                            // let count = res.data.filter(v => v.createtime === item).length
+                            let count = res.data.filter(v => v.createtime === item)[0].cost
+                            console.log(count,'count')
+
+                            costOption.series[0].data.push({name: item, value: count})
+                        })
+                        console.log(res,'cost')
+                        // 使用刚指定的配置项和数据显示图表。
+                        costChart.setOption(costOption);
+                    }
+                })
+
+                // 基于准备好的dom，初始化echarts实例
+                let barChart = echarts.init(document.getElementById('bar'));
+                // 使用刚指定的配置项和数据显示图表。
+                barChart.setOption(barOption);
+
+            },
+            handleCollapse() {
+                this.isCollapse = !this.isCollapse;
+            },
+            logout() {
+                $.get("/api/user/logout");
+                sessionStorage.removeItem("user");
+                location.href = "/page/end/login.html";
+            }
+        }
+    })
+</script>
+</body>
+</html>
